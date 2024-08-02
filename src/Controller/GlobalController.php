@@ -1,11 +1,17 @@
 <?php
+namespace App\Controller;
 
-namespace FrameworkPH\Controller;
+use App\Http\Request;
+use App\Http\Response;
 
-class GlobalController extends RequestController
+class GlobalController
 {
-    public function index(): void
+    protected $request;
+    protected $response;
+
+    public function __construct(Request $request, Response $response)
     {
-        $this->sendResponse(['message' => 'bnj']);
+        $this->request = $request;
+        $this->response = $response;
     }
 }
