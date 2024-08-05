@@ -19,8 +19,23 @@ class Router
 
     public function dispatch()
     {
+        $uri = $this->request->getUri();
+
+        if (isset($this->routes[$uri])) {
+            list($controllerName, $action) = explode('@', $this->routes[$uri]);
+            $controllerClass = "App\\Controller\\{$controllerName}";
+
+            if (class_exists($controllerClass)) {
+                $controller = new $controllerClass($this->request, $this->response);
+                if (method_exists($controller, $action)) {
+                    $controller->$action();
+                    return;
+                }
+            }
+        }
+
         $this->response->setStatusCode(404);
-        $this->response->setContent("error 404");
+        $this->response->setContent("404 Not Found");
         $this->response->send();
     }
 }
