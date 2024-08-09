@@ -1,11 +1,14 @@
 <?php
 namespace App\Controller;
 
-class HttpController extends GlobalController
+use App\Http\Request;
+use App\Http\Response;
+
+class HttpController
 {
-    public function index()
+    public function index(Request $request, Response $response): void
     {
-        $this->response->setContent("bnj");
-        $this->response->send();
+        $response->setContent("hellooo");
+        $response->send();
     }
 }

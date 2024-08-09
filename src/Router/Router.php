@@ -2,40 +2,43 @@
 namespace App\Router;
 
 use App\Http\Request;
-use App\Http\Response;
+use App\Exceptions\RouteNotFound;
 
 class Router
 {
-    private $routes;
-    private $request;
-    private $response;
+    /**
+     * @var array<Route>
+     */
+    private array $routes = [];
 
-    public function __construct(array $routes, Request $request, Response $response)
+    /**
+     * @param array<Route> $routes
+     */
+    public function __construct(array $routes)
     {
-        $this->routes = $routes;
-        $this->request = $request;
-        $this->response = $response;
+        foreach ($routes as $route) {
+            $this->add($route);
+        }
     }
 
-    public function dispatch()
+    /**
+     * @throws RouteNotFound
+     */
+    public function match(Request $request): Route
     {
-        $uri = $this->request->getUri();
-
-        if (isset($this->routes[$uri])) {
-            list($controllerName, $action) = explode('@', $this->routes[$uri]);
-            $controllerClass = "App\\Controller\\{$controllerName}";
-
-            if (class_exists($controllerClass)) {
-                $controller = new $controllerClass($this->request, $this->response);
-                if (method_exists($controller, $action)) {
-                    $controller->$action();
-                    return;
-                }
+        $path = $request->getUri();
+        foreach ($this->routes as $route) {
+            if ($route->match($path, $request->getMethod())) {
+                return $route;
             }
         }
 
-        $this->response->setStatusCode(404);
-        $this->response->setContent("404 Not Found");
-        $this->response->send();
+        throw new RouteNotFound('No route found for ' . $path);
+    }
+
+    public function add(Route $route): self
+    {
+        $this->routes[] = $route;
+        return $this;
     }
 }

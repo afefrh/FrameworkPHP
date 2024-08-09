@@ -1,4 +1,7 @@
 <?php
+
+use App\Router\Route;
+
 return [
-    '/' => 'HttpController@index',
+    new Route('/', 'GET', 'App\Controller\HttpController', 'index'),
 ];
