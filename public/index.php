@@ -1,34 +1,26 @@
 <?php
 
-use App\Container\Container;
-use App\Router\Router;
-use App\Exceptions\RouteNotFound;
-use App\Http\Request;
-use App\Http\Response;
-
 require_once '../vendor/autoload.php';
 
-$definitions = require '../config/dependencies.php';
+use App\Container\Container;
+use App\Router\Router;
+use App\Http\Request;
+use App\Http\Response;
+use App\Router\Exceptions\RouteNotFoundException;
 
-$container = new Container($definitions);
-
+$container = new Container(require '../config/dependencies.php');
 $request = $container->get(Request::class);
 $response = $container->get(Response::class);
 
-$routes = require '../config/routes.php';
-
-$router = new Router($routes);
+$router = new Router(require '../config/routes.php');
 
 try {
     $route = $router->match($request);
-
-    $controllerName = $route->getController();
+    $controller = $container->get($route->getController());
     $action = $route->getAction();
-
-    $controller = new $controllerName();
     $controller->$action($request, $response);
-} catch (RouteNotFound $e) {
+} catch (RouteNotFoundException $e) {
     $response->setStatusCode(404);
-    $response->setContent("404 Not Found: " . $e->getMessage());
+    $response->setContent($e->getMessage());
     $response->send();
 }

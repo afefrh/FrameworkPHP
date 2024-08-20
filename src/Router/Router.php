@@ -2,7 +2,7 @@
 namespace App\Router;
 
 use App\Http\Request;
-use App\Exceptions\RouteNotFound;
+use App\Router\Exceptions\RouteNotFoundException;
 
 class Router
 {
@@ -33,7 +33,7 @@ class Router
             }
         }
 
-        throw new RouteNotFound('No route found for ' . $path);
+        throw new RouteNotFoundException('No route found for ' . $path);
     }
 
     public function add(Route $route): self

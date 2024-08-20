@@ -1,36 +1,42 @@
 <?php
+
 namespace App\Container;
+
+use App\Container\Exceptions\NotFoundException;
 
 class Container
 {
-    private array $bindings = [];
-    private array $instances = [];
+    private array $definitions = [];
+    private array $resolvedEntries = [];
 
     public function __construct(array $definitions = [])
     {
-        foreach ($definitions as $key => $definition) {
-            $this->bind($key, $definition);
-        }
+        $this->definitions = $definitions;
     }
 
-    public function bind(string $key, callable $resolver): void
+    public function get(string $id)
     {
-        $this->bindings[$key] = $resolver;
+        if (!$this->has($id)) {
+            throw new NotFoundException("No entry for '$id'");
+        }
+
+        if (isset($this->resolvedEntries[$id])) {
+            return $this->resolvedEntries[$id];
+        }
+
+        $entry = $this->definitions[$id];
+
+        if ($entry instanceof \Closure) {
+            $entry = $entry($this);
+        }
+
+        $this->resolvedEntries[$id] = $entry;
+
+        return $entry;
     }
 
-    public function get(string $key)
+    public function has(string $id): bool
     {
-        if (isset($this->instances[$key])) {
-            return $this->instances[$key];
-        }
-
-        if (!isset($this->bindings[$key])) {
-            throw new \Exception("No found: $key");
-        }
-
-        $resolver = $this->bindings[$key];
-        $this->instances[$key] = $resolver($this);
-
-        return $this->instances[$key];
+        return isset($this->definitions[$id]) || isset($this->resolvedEntries[$id]);
     }
 }
